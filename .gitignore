@@ -1,0 +1,73 @@
+# ===== .NET =====
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+
+# Build output
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Oo]ut/
+
+# NuGet
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Logs
+logs/
+*.log
+
+# ===== Node / Frontend =====
+client/node_modules/
+client/dist/
+client/build/
+client/.vite/
+client/*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== Environment / Secrets =====
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+appsettings.Production.json
+
+# ===== Database files =====
+*.db
+*.db-shm
+*.db-wal
+*.mdf
+*.ldf
+
+# ===== Uploaded user files (currently included; remove the # below to exclude) =====
+# src/QuizApp.API/wwwroot/uploads/images/
+# src/QuizApp.API/wwwroot/uploads/tables/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ===== IDE =====
+*.swp
+*.swo
+*~
+.idea/
+
+# ===== Tool output =====
+tools/DataMigration/bin/
+tools/DataMigration/obj/
