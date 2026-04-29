@@ -1,5 +1,10 @@
 import axiosInstance from './axiosInstance';
-import type { TeacherDashboardDto, QuizAnalyticsDto, StudentPerformanceDto } from '../types/analytics';
+import type {
+  TeacherDashboardDto,
+  QuizAnalyticsDto,
+  StudentPerformanceDto,
+  AttemptDetailedDto,
+} from '../types/analytics';
 
 export const analyticsApi = {
   getDashboard() {
@@ -12,5 +17,9 @@ export const analyticsApi = {
 
   getStudentPerformance(studentId: string) {
     return axiosInstance.get<StudentPerformanceDto>(`/analytics/student/${studentId}`);
+  },
+
+  getAttemptDetailed(attemptId: string) {
+    return axiosInstance.get<AttemptDetailedDto>(`/analytics/attempt/${attemptId}`);
   },
 };

@@ -291,6 +291,9 @@ namespace QuizApp.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("FeedbackExplanation")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("InputText")
                         .HasMaxLength(2000)
                         .HasColumnType("varchar(2000)");
@@ -303,6 +306,12 @@ namespace QuizApp.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("QuizAttemptId")
                         .HasColumnType("char(36)");
+
+                    b.Property<int>("ReevaluationCount")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("double");
 
                     b.Property<Guid?>("SelectedAnswerId")
                         .HasColumnType("char(36)");
@@ -456,6 +465,15 @@ namespace QuizApp.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<bool>("AllowFeedback")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("AllowReevaluation")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("AutoReevaluationQuota")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -467,7 +485,34 @@ namespace QuizApp.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("varchar(2000)");
 
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("JoinWindowMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ManualStartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxReevaluationsPerStudent")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Mode")
+                        .HasColumnType("int");
+
                     b.Property<int>("PassingScorePercentage")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ScheduledEndAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ScheduledStartAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("StartMode")
                         .HasColumnType("int");
 
                     b.Property<int>("Status")
@@ -505,6 +550,9 @@ namespace QuizApp.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsGrading")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<Guid>("QuizId")
                         .HasColumnType("char(36)");
@@ -554,10 +602,22 @@ namespace QuizApp.Infrastructure.Persistence.Migrations
                     b.Property<int>("HardPercentage")
                         .HasColumnType("int");
 
+                    b.Property<int>("InputPercentage")
+                        .HasColumnType("int");
+
                     b.Property<int>("MediumPercentage")
                         .HasColumnType("int");
 
+                    b.Property<int>("MultipleChoicePercentage")
+                        .HasColumnType("int");
+
                     b.Property<int>("QuestionCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SingleChoicePercentage")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TrueFalsePercentage")
                         .HasColumnType("int");
 
                     b.HasKey("QuizId", "CategoryId");

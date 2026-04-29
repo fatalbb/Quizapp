@@ -16,6 +16,7 @@ export interface GetQuestionsParams {
   pageSize: number;
   categoryId?: string;
   type?: string;
+  difficulty?: string;
 }
 
 export const questionsApi = {

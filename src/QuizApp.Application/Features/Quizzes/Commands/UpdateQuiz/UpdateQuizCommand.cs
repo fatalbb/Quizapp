@@ -16,6 +16,20 @@ public class UpdateQuizCommand : IRequest
     public int TimeLimitMinutes { get; set; }
     public int PassingScorePercentage { get; set; }
     public List<QuizCategoryDto> Categories { get; set; } = [];
+
+    // Exam mode
+    public QuizMode Mode { get; set; } = QuizMode.Learning;
+    public int MaxAttempts { get; set; }
+    public ExamStartMode? StartMode { get; set; }
+    public DateTime? ScheduledStartAt { get; set; }
+    public DateTime? ScheduledEndAt { get; set; }
+    public int JoinWindowMinutes { get; set; } = 5;
+
+    // Feedback / Re-evaluation
+    public bool AllowFeedback { get; set; } = true;
+    public bool AllowReevaluation { get; set; }
+    public bool AutoReevaluationQuota { get; set; } = true;
+    public int MaxReevaluationsPerStudent { get; set; } = 1;
 }
 
 public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand>
@@ -47,6 +61,24 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand>
         quiz.TimeLimitMinutes = request.TimeLimitMinutes;
         quiz.PassingScorePercentage = request.PassingScorePercentage;
 
+        // Exam mode
+        quiz.Mode = request.Mode;
+        quiz.MaxAttempts = request.MaxAttempts;
+        quiz.StartMode = request.Mode == QuizMode.Exam ? request.StartMode : null;
+        quiz.ScheduledStartAt = request.Mode == QuizMode.Exam && request.StartMode == ExamStartMode.Scheduled
+            ? request.ScheduledStartAt : null;
+        quiz.ScheduledEndAt = request.Mode == QuizMode.Exam && request.StartMode == ExamStartMode.Scheduled
+            ? request.ScheduledEndAt : null;
+        quiz.JoinWindowMinutes = request.JoinWindowMinutes;
+        quiz.AllowFeedback = request.AllowFeedback;
+        quiz.AllowReevaluation = request.AllowReevaluation;
+        quiz.AutoReevaluationQuota = request.AutoReevaluationQuota;
+        quiz.MaxReevaluationsPerStudent = Math.Max(0, request.MaxReevaluationsPerStudent);
+
+        // Reset validation if quiz was edited
+        quiz.IsValidated = false;
+        quiz.ManualStartedAt = null;
+
         _context.QuizCategories.RemoveRange(quiz.QuizCategories);
         quiz.QuizCategories = request.Categories.Select(c => new QuizCategory
         {
@@ -55,7 +87,11 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand>
             QuestionCount = c.QuestionCount,
             EasyPercentage = c.EasyPercentage,
             MediumPercentage = c.MediumPercentage,
-            HardPercentage = c.HardPercentage
+            HardPercentage = c.HardPercentage,
+            MultipleChoicePercentage = c.MultipleChoicePercentage,
+            SingleChoicePercentage = c.SingleChoicePercentage,
+            TrueFalsePercentage = c.TrueFalsePercentage,
+            InputPercentage = c.InputPercentage
         }).ToList();
 
         await _context.SaveChangesAsync(cancellationToken);

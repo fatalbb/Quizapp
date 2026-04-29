@@ -21,11 +21,13 @@ const QuestionsListPage = React.lazy(() => import('../pages/teacher/QuestionsLis
 const QuestionFormPage = React.lazy(() => import('../pages/teacher/QuestionFormPage'));
 const QuizzesListPage = React.lazy(() => import('../pages/teacher/QuizzesListPage'));
 const QuizFormPage = React.lazy(() => import('../pages/teacher/QuizFormPage'));
+const QuizPreviewPage = React.lazy(() => import('../pages/teacher/QuizPreviewPage'));
 const AiGeneratePage = React.lazy(() => import('../pages/teacher/AiGeneratePage'));
 
 // Lazy-loaded analytics pages (shared between admin and teacher)
 const QuizAnalyticsPage = React.lazy(() => import('../pages/teacher/QuizAnalyticsPage'));
 const StudentPerformancePage = React.lazy(() => import('../pages/teacher/StudentPerformancePage'));
+const AttemptDetailedPage = React.lazy(() => import('../pages/teacher/AttemptDetailedPage'));
 
 // Lazy-loaded student pages
 const QuizBrowsePage = React.lazy(() => import('../pages/student/QuizBrowsePage'));
@@ -114,8 +116,10 @@ export const router = createBrowserRouter([
               { path: 'quizzes', element: <QuizzesListPage /> },
               { path: 'quizzes/new', element: <QuizFormPage /> },
               { path: 'quizzes/:id/edit', element: <QuizFormPage /> },
+              { path: 'quizzes/:id/preview', element: <QuizPreviewPage /> },
               { path: 'analytics/quiz/:quizId', element: <QuizAnalyticsPage /> },
               { path: 'analytics/student/:studentId', element: <StudentPerformancePage /> },
+              { path: 'attempts/:attemptId/detailed', element: <AttemptDetailedPage /> },
             ],
           },
         ],
@@ -142,6 +146,10 @@ export const router = createBrowserRouter([
               { path: 'quizzes', element: <QuizzesListPage /> },
               { path: 'quizzes/new', element: <QuizFormPage /> },
               { path: 'quizzes/:id/edit', element: <QuizFormPage /> },
+              { path: 'quizzes/:id/preview', element: <QuizPreviewPage /> },
+              { path: 'analytics/quiz/:quizId', element: <QuizAnalyticsPage /> },
+              { path: 'analytics/student/:studentId', element: <StudentPerformancePage /> },
+              { path: 'attempts/:attemptId/detailed', element: <AttemptDetailedPage /> },
             ],
           },
         ],

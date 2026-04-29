@@ -5,6 +5,9 @@ import type {
   SubmitQuizAttemptRequest,
   QuizAttemptResultDto,
   MyAttemptDto,
+  QuestionFeedbackDto,
+  ReevaluationResultDto,
+  BatchReevaluationResultDto,
 } from '../types/quizAttempt';
 
 export interface GetMyAttemptsParams {
@@ -28,4 +31,40 @@ export const quizAttemptsApi = {
   getMyAttempts(params: GetMyAttemptsParams) {
     return axiosInstance.get<PaginatedList<MyAttemptDto>>('/quiz-attempts/my', { params });
   },
+
+  runQuery(attemptId: string, questionId: string, query: string) {
+    return axiosInstance.post<SqlSandboxResult>(`/quiz-attempts/${attemptId}/run-query`, {
+      attemptId,
+      questionId,
+      query,
+    });
+  },
+
+  getFeedback(attemptId: string, questionId: string) {
+    return axiosInstance.post<QuestionFeedbackDto>(`/quiz-attempts/${attemptId}/feedback`, {
+      questionId,
+    });
+  },
+
+  requestReevaluation(attemptId: string, questionId: string, justification: string) {
+    return axiosInstance.post<ReevaluationResultDto>(`/quiz-attempts/${attemptId}/reevaluate`, {
+      questionId,
+      justification,
+    });
+  },
+
+  requestBatchReevaluation(attemptId: string, justification: string) {
+    return axiosInstance.post<BatchReevaluationResultDto>(`/quiz-attempts/${attemptId}/reevaluate-all`, {
+      justification,
+    });
+  },
 };
+
+export interface SqlSandboxResult {
+  success: boolean;
+  columns: string[];
+  rows: (string | null)[][];
+  rowsAffected: number;
+  errorMessage?: string;
+  elapsedMs: number;
+}

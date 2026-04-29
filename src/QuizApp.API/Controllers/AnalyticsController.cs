@@ -34,4 +34,11 @@ public class AnalyticsController : ControllerBase
         var result = await _mediator.Send(new GetStudentPerformanceQuery(studentId));
         return Ok(result);
     }
+
+    [HttpGet("attempt/{attemptId:guid}")]
+    public async Task<IActionResult> GetAttemptDetailed(Guid attemptId)
+    {
+        var result = await _mediator.Send(new GetAttemptDetailedQuery(attemptId));
+        return Ok(result);
+    }
 }

@@ -37,7 +37,7 @@ public class FilesController : ControllerBase
     }
 
     [HttpGet("parse-excel/{**filePath}")]
-    public IActionResult ParseExcel(string filePath)
+    public IActionResult ParseExcel(string filePath, [FromQuery] int maxRows = 20)
     {
         var fullPath = Path.GetFullPath(Path.Combine(_basePath, filePath));
 
@@ -46,6 +46,9 @@ public class FilesController : ControllerBase
 
         if (!System.IO.File.Exists(fullPath))
             return NotFound(new { error = $"File not found: {filePath}" });
+
+        // Cap maxRows for safety (still allow caller to override up to 1000)
+        maxRows = Math.Clamp(maxRows, 1, 1000);
 
         using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
         using var workbook = new ClosedXML.Excel.XLWorkbook(stream);
@@ -60,8 +63,11 @@ public class FilesController : ControllerBase
             for (int c = 1; c <= lastCol; c++)
                 columns.Add(ws.Cell(1, c).GetString().Trim());
 
-            var rows = new List<List<string>>();
-            for (int r = 2; r <= lastRow; r++)
+            // Limit data rows to maxRows (excluding the header row)
+            var dataRowCount = lastRow - 1;
+            var rowLimit = Math.Min(dataRowCount, maxRows);
+            var rows = new List<List<string>>(rowLimit);
+            for (int r = 2; r <= rowLimit + 1; r++)
             {
                 var row = new List<string>();
                 for (int c = 1; c <= lastCol; c++)
@@ -69,7 +75,14 @@ public class FilesController : ControllerBase
                 rows.Add(row);
             }
 
-            return new { tableName = ws.Name, columns, rows };
+            return new
+            {
+                tableName = ws.Name,
+                columns,
+                rows,
+                totalRows = dataRowCount,
+                truncated = dataRowCount > maxRows
+            };
         }).Where(t => t != null).ToList();
 
         return Ok(tables);

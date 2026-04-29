@@ -18,6 +18,17 @@ public class QuizListDto
     public int PassingScorePercentage { get; set; }
     public int TotalQuestions { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    // Exam mode
+    public string Mode { get; set; } = "Learning";
+    public bool IsValidated { get; set; }
+    public int MaxAttempts { get; set; }
+    public string? StartMode { get; set; }
+    public DateTime? ScheduledStartAt { get; set; }
+    public DateTime? ScheduledEndAt { get; set; }
+    public DateTime? ManualStartedAt { get; set; }
+    public int JoinWindowMinutes { get; set; }
+    public int AttemptsUsed { get; set; } // for current student
 }
 
 public class GetQuizzesQueryHandler : IRequestHandler<GetQuizzesQuery, PaginatedList<QuizListDto>>
@@ -44,6 +55,7 @@ public class GetQuizzesQueryHandler : IRequestHandler<GetQuizzesQuery, Paginated
         else if (_currentUserService.Role == UserRole.Teacher)
             query = query.Where(q => q.CreatedById == _currentUserService.UserId);
 
+        var userId = _currentUserService.UserId;
         var projected = query.Select(q => new QuizListDto
         {
             Id = q.Id,
@@ -53,7 +65,17 @@ public class GetQuizzesQueryHandler : IRequestHandler<GetQuizzesQuery, Paginated
             Status = q.Status.ToString(),
             PassingScorePercentage = q.PassingScorePercentage,
             TotalQuestions = q.QuizCategories.Sum(qc => qc.QuestionCount),
-            CreatedAt = q.CreatedAt
+            CreatedAt = q.CreatedAt,
+            Mode = q.Mode.ToString(),
+            IsValidated = q.IsValidated,
+            MaxAttempts = q.MaxAttempts,
+            StartMode = q.StartMode != null ? q.StartMode.ToString() : null,
+            ScheduledStartAt = q.ScheduledStartAt,
+            ScheduledEndAt = q.ScheduledEndAt,
+            ManualStartedAt = q.ManualStartedAt,
+            JoinWindowMinutes = q.JoinWindowMinutes,
+            // Only count completed/timed-out attempts (InProgress = abandoned, will be cleaned up on next start)
+            AttemptsUsed = q.Attempts.Count(a => a.StudentId == userId && a.Status != QuizAttemptStatus.InProgress)
         });
 
         return await PaginatedList<QuizListDto>.CreateAsync(projected, request.PageNumber, request.PageSize);

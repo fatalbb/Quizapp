@@ -69,16 +69,49 @@ public class CategoriesController : ControllerBase
     [Authorize(Roles = "Admin,Teacher")]
     public async Task<IActionResult> GetQuestionCounts(Guid id)
     {
-        var counts = await _context.Questions
+        // Count by (Difficulty, Type) combination
+        var grouped = await _context.Questions
             .Where(q => q.CategoryId == id)
-            .GroupBy(q => q.DifficultyLevel)
-            .Select(g => new { difficulty = g.Key.ToString(), count = g.Count() })
+            .GroupBy(q => new { q.DifficultyLevel, q.QuestionType })
+            .Select(g => new
+            {
+                difficulty = g.Key.DifficultyLevel.ToString(),
+                type = g.Key.QuestionType.ToString(),
+                count = g.Count()
+            })
             .ToListAsync();
 
-        var easy = counts.FirstOrDefault(c => c.difficulty == "Easy")?.count ?? 0;
-        var medium = counts.FirstOrDefault(c => c.difficulty == "Medium")?.count ?? 0;
-        var hard = counts.FirstOrDefault(c => c.difficulty == "Hard")?.count ?? 0;
+        // Build breakdown matrix: byDifficultyType["Easy"]["MultipleChoice"] = N
+        var difficulties = new[] { "Easy", "Medium", "Hard" };
+        var types = new[] { "MultipleChoice", "SingleChoice", "TrueFalse", "Input" };
 
-        return Ok(new { total = easy + medium + hard, easy, medium, hard });
+        var byDifficultyType = new Dictionary<string, Dictionary<string, int>>();
+        foreach (var d in difficulties)
+        {
+            byDifficultyType[d] = new Dictionary<string, int>();
+            foreach (var t in types)
+            {
+                var match = grouped.FirstOrDefault(g => g.difficulty == d && g.type == t);
+                byDifficultyType[d][t] = match?.count ?? 0;
+            }
+        }
+
+        var easy = grouped.Where(g => g.difficulty == "Easy").Sum(g => g.count);
+        var medium = grouped.Where(g => g.difficulty == "Medium").Sum(g => g.count);
+        var hard = grouped.Where(g => g.difficulty == "Hard").Sum(g => g.count);
+
+        var byType = types.ToDictionary(
+            t => t,
+            t => grouped.Where(g => g.type == t).Sum(g => g.count));
+
+        return Ok(new
+        {
+            total = easy + medium + hard,
+            easy,
+            medium,
+            hard,
+            byType,
+            byDifficultyType
+        });
     }
 }

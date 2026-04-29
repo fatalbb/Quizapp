@@ -20,8 +20,22 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new UtcDateTimeConverter());
+        options.JsonSerializerOptions.Converters.Add(new NullableUtcDateTimeConverter());
     });
 builder.Services.AddHttpContextAccessor();
+
+// CORS for LAN access (Vite dev server on other devices)
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.SetIsOriginAllowed(_ => true) // accept any origin in dev (LAN)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -55,7 +69,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // disabled for LAN HTTP access
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

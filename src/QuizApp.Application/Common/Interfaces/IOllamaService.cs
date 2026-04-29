@@ -17,6 +17,28 @@ public interface IOllamaService
         string expectedAnswer,
         string studentAnswer,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Generate explanatory feedback for a graded answer: why it's wrong (or right) and what the correct answer is.
+    /// </summary>
+    Task<string> GenerateFeedbackAsync(
+        string questionText,
+        string questionType,
+        string correctAnswerText,
+        string studentAnswerText,
+        bool wasCorrect,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Re-evaluate an Input answer with the student's justification context. Used to challenge a grading.
+    /// </summary>
+    Task<AnswerEvaluation> ReevaluateAnswerAsync(
+        string questionText,
+        string expectedAnswer,
+        string studentAnswer,
+        string justification,
+        bool isTeacher,
+        CancellationToken cancellationToken = default);
 }
 
 public class GeneratedQuestionDto

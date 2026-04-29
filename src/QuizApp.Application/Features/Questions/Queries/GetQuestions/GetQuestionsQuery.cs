@@ -10,7 +10,8 @@ public record GetQuestionsQuery(
     int PageNumber = 1,
     int PageSize = 10,
     Guid? CategoryId = null,
-    QuestionType? Type = null) : IRequest<PaginatedList<QuestionListDto>>;
+    QuestionType? Type = null,
+    DifficultyLevel? Difficulty = null) : IRequest<PaginatedList<QuestionListDto>>;
 
 public class QuestionListDto
 {
@@ -41,6 +42,9 @@ public class GetQuestionsQueryHandler : IRequestHandler<GetQuestionsQuery, Pagin
 
         if (request.Type.HasValue)
             query = query.Where(q => q.QuestionType == request.Type.Value);
+
+        if (request.Difficulty.HasValue)
+            query = query.Where(q => q.DifficultyLevel == request.Difficulty.Value);
 
         var projected = query.Select(q => new QuestionListDto
         {

@@ -35,6 +35,16 @@ export enum QuizStatus {
   Archived = 'Archived',
 }
 
+export enum QuizMode {
+  Learning = 'Learning',
+  Exam = 'Exam',
+}
+
+export enum ExamStartMode {
+  Manual = 'Manual',
+  Scheduled = 'Scheduled',
+}
+
 export enum QuizAttemptStatus {
   InProgress = 'InProgress',
   Completed = 'Completed',

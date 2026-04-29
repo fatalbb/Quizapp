@@ -14,6 +14,7 @@ public class QuizAttemptStartDto
     public Guid AttemptId { get; set; }
     public int TimeLimitMinutes { get; set; }
     public DateTime StartedAt { get; set; }
+    public string Mode { get; set; } = "Learning";
     public List<AttemptQuestionDto> Questions { get; set; } = [];
 }
 
@@ -66,36 +67,112 @@ public class StartQuizAttemptCommandHandler : IRequestHandler<StartQuizAttemptCo
         if (quiz.Status != QuizStatus.Published)
             throw new InvalidOperationException("Quiz is not available.");
 
-        // Select random questions from each category based on difficulty distribution
+        var now = DateTime.UtcNow;
+
+        // For Exam quizzes, check if it's currently live
+        if (quiz.Mode == QuizMode.Exam)
+        {
+            if (quiz.StartMode == ExamStartMode.Manual)
+            {
+                if (quiz.ManualStartedAt == null)
+                    throw new InvalidOperationException("This exam has not been started by the teacher yet.");
+
+                var joinDeadline = quiz.ManualStartedAt.Value.AddMinutes(quiz.JoinWindowMinutes);
+                if (now > joinDeadline)
+                    throw new InvalidOperationException("The join window for this exam has closed.");
+            }
+            else if (quiz.StartMode == ExamStartMode.Scheduled)
+            {
+                if (quiz.ScheduledStartAt.HasValue && now < quiz.ScheduledStartAt.Value)
+                    throw new InvalidOperationException($"This exam starts at {quiz.ScheduledStartAt.Value:yyyy-MM-dd HH:mm} UTC.");
+
+                if (quiz.ScheduledEndAt.HasValue && now > quiz.ScheduledEndAt.Value)
+                    throw new InvalidOperationException("This exam has closed.");
+            }
+        }
+
+        // Delete any abandoned InProgress attempts for this student+quiz (no junk data)
+        var abandoned = await _context.QuizAttempts
+            .Include(a => a.AttemptAnswers)
+            .Where(a => a.QuizId == quiz.Id
+                && a.StudentId == _currentUserService.UserId
+                && a.Status == QuizAttemptStatus.InProgress)
+            .ToListAsync(cancellationToken);
+
+        if (abandoned.Any())
+        {
+            // Delete cascades to AttemptAnswers via EF relationship
+            _context.AttemptAnswers.RemoveRange(abandoned.SelectMany(a => a.AttemptAnswers));
+            _context.QuizAttempts.RemoveRange(abandoned);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // Check max attempts (only Completed/TimedOut count)
+        if (quiz.MaxAttempts > 0)
+        {
+            var completedAttempts = await _context.QuizAttempts
+                .CountAsync(a => a.QuizId == quiz.Id
+                    && a.StudentId == _currentUserService.UserId
+                    && a.Status != QuizAttemptStatus.InProgress, cancellationToken);
+
+            if (completedAttempts >= quiz.MaxAttempts)
+                throw new InvalidOperationException(
+                    $"You have reached the maximum number of attempts ({quiz.MaxAttempts}) for this quiz.");
+        }
+
+        // Select random questions per (category, difficulty, type) bucket
         var selectedQuestions = new List<Question>();
         foreach (var qc in quiz.QuizCategories)
         {
             var easyCount = (int)Math.Round(qc.QuestionCount * qc.EasyPercentage / 100.0);
             var mediumCount = (int)Math.Round(qc.QuestionCount * qc.MediumPercentage / 100.0);
-            var hardCount = qc.QuestionCount - easyCount - mediumCount; // remainder goes to hard
+            var hardCount = qc.QuestionCount - easyCount - mediumCount;
 
-            foreach (var (difficulty, count) in new[]
+            var difficultyBuckets = new[]
             {
                 (DifficultyLevel.Easy, easyCount),
                 (DifficultyLevel.Medium, mediumCount),
                 (DifficultyLevel.Hard, hardCount)
-            })
+            };
+
+            foreach (var (difficulty, diffCount) in difficultyBuckets)
             {
-                if (count <= 0) continue;
+                if (diffCount <= 0) continue;
 
-                var allForDifficulty = await _context.Questions
-                    .Include(q => q.Answers.OrderBy(a => a.OrderIndex))
-                    .Include(q => q.Media)
-                    .Where(q => q.CategoryId == qc.CategoryId && q.DifficultyLevel == difficulty)
-                    .ToListAsync(cancellationToken);
+                // Split this difficulty bucket across the 4 types
+                var mcCount = (int)Math.Round(diffCount * qc.MultipleChoicePercentage / 100.0);
+                var scCount = (int)Math.Round(diffCount * qc.SingleChoicePercentage / 100.0);
+                var tfCount = (int)Math.Round(diffCount * qc.TrueFalsePercentage / 100.0);
+                var inputCount = diffCount - mcCount - scCount - tfCount; // remainder
 
-                // Shuffle in memory (SQLite doesn't support OrderBy(Guid.NewGuid()))
-                var questions = allForDifficulty
-                    .OrderBy(_ => Random.Shared.Next())
-                    .Take(count)
-                    .ToList();
+                var typeBuckets = new[]
+                {
+                    (QuestionType.MultipleChoice, mcCount),
+                    (QuestionType.SingleChoice, scCount),
+                    (QuestionType.TrueFalse, tfCount),
+                    (QuestionType.Input, inputCount)
+                };
 
-                selectedQuestions.AddRange(questions);
+                foreach (var (type, typeCount) in typeBuckets)
+                {
+                    if (typeCount <= 0) continue;
+
+                    var pool = await _context.Questions
+                        .Include(q => q.Answers.OrderBy(a => a.OrderIndex))
+                        .Include(q => q.Media)
+                        .Where(q => q.CategoryId == qc.CategoryId
+                            && q.DifficultyLevel == difficulty
+                            && q.QuestionType == type)
+                        .ToListAsync(cancellationToken);
+
+                    // Take what's available; if fewer than requested, no fallback to other types/difficulties
+                    var picked = pool
+                        .OrderBy(_ => Random.Shared.Next())
+                        .Take(typeCount)
+                        .ToList();
+
+                    selectedQuestions.AddRange(picked);
+                }
             }
         }
 
@@ -122,6 +199,7 @@ public class StartQuizAttemptCommandHandler : IRequestHandler<StartQuizAttemptCo
             AttemptId = attempt.Id,
             TimeLimitMinutes = quiz.TimeLimitMinutes,
             StartedAt = attempt.StartedAt,
+            Mode = quiz.Mode.ToString(),
             Questions = selectedQuestions.Select(q => new AttemptQuestionDto
             {
                 QuestionId = q.Id,

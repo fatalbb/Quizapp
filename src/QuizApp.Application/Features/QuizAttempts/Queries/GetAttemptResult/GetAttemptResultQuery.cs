@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuizApp.Application.Common.Exceptions;
+using QuizApp.Application.Common.Helpers;
 using QuizApp.Application.Common.Interfaces;
 using QuizApp.Application.Features.QuizAttempts.Commands.SubmitQuizAttempt;
 using QuizApp.Domain.Entities;
@@ -30,13 +31,18 @@ public class GetAttemptResultQueryHandler : IRequestHandler<GetAttemptResultQuer
             Score = attempt.Score ?? 0,
             CorrectAnswers = attempt.CorrectAnswers,
             TotalQuestions = attempt.TotalQuestions,
-            Passed = attempt.Score >= attempt.Quiz.PassingScorePercentage,
+            Passed = (attempt.Score ?? 0) >= attempt.Quiz.PassingScorePercentage,
             Status = attempt.Status.ToString(),
+            IsGrading = attempt.IsGrading,
+            AllowFeedback = attempt.Quiz.AllowFeedback,
+            AllowReevaluation = attempt.Quiz.AllowReevaluation,
+            MaxReevaluationsPerStudent = ReevaluationQuotaHelper.GetEffectiveMax(attempt.Quiz, attempt),
+            ReevaluationsUsed = attempt.AttemptAnswers.Sum(aa => aa.ReevaluationCount),
             QuestionResults = attempt.AttemptAnswers.Select(aa => new QuestionResultDto
             {
                 QuestionId = aa.QuestionId,
                 QuestionText = aa.Question.Text,
-                IsCorrect = aa.IsCorrect ?? false,
+                IsCorrect = aa.IsCorrect, // null while pending grading
                 AiEvaluationNotes = aa.AiEvaluationNotes
             }).ToList()
         };

@@ -22,7 +22,8 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { questionsApi } from '../../api/questionsApi';
 import type { QuestionListDto } from '../../types/question';
-import { QuestionType } from '../../types/enums';
+import { QuestionType, DifficultyLevel } from '../../types/enums';
+import { Typography } from 'antd';
 import CategoryTreeSelect from '../../components/shared/CategoryTreeSelect';
 import dayjs from 'dayjs';
 
@@ -48,6 +49,7 @@ export default function QuestionsListPage() {
   const [pageSize, setPageSize] = useState(10);
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [questionType, setQuestionType] = useState<string | undefined>();
+  const [difficulty, setDifficulty] = useState<string | undefined>();
   const [search, setSearch] = useState('');
 
   const fetchQuestions = useCallback(() => {
@@ -58,6 +60,7 @@ export default function QuestionsListPage() {
         pageSize,
         categoryId,
         type: questionType,
+        difficulty,
       })
       .then((res) => {
         setData(res.data.items);
@@ -65,7 +68,7 @@ export default function QuestionsListPage() {
       })
       .catch(() => message.error('Failed to load questions'))
       .finally(() => setLoading(false));
-  }, [page, pageSize, categoryId, questionType]);
+  }, [page, pageSize, categoryId, questionType, difficulty]);
 
   useEffect(() => {
     fetchQuestions();
@@ -184,7 +187,7 @@ export default function QuestionsListPage() {
               placeholder="Filter by category"
             />
           </Col>
-          <Col xs={24} sm={8} md={6}>
+          <Col xs={24} sm={8} md={5}>
             <Select
               placeholder="Filter by type"
               allowClear
@@ -200,7 +203,23 @@ export default function QuestionsListPage() {
               }))}
             />
           </Col>
-          <Col xs={24} sm={8} md={6}>
+          <Col xs={24} sm={8} md={5}>
+            <Select
+              placeholder="Filter by difficulty"
+              allowClear
+              style={{ width: '100%' }}
+              value={difficulty}
+              onChange={(val: string) => {
+                setDifficulty(val);
+                setPage(1);
+              }}
+              options={Object.values(DifficultyLevel).map((d) => ({
+                label: d,
+                value: d,
+              }))}
+            />
+          </Col>
+          <Col xs={24} sm={8} md={5}>
             <Input.Search
               placeholder="Search by text"
               allowClear
@@ -209,6 +228,11 @@ export default function QuestionsListPage() {
             />
           </Col>
         </Row>
+
+        <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>
+          Showing {filteredData.length} of {total} question{total === 1 ? '' : 's'}
+          {(categoryId || questionType || difficulty || search) && ' (filtered)'}
+        </Typography.Text>
 
         <Table
           columns={columns}

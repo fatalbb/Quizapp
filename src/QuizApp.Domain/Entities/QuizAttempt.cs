@@ -13,6 +13,7 @@ public class QuizAttempt : BaseEntity
     public int TotalQuestions { get; set; }
     public int CorrectAnswers { get; set; }
     public QuizAttemptStatus Status { get; set; } = QuizAttemptStatus.InProgress;
+    public bool IsGrading { get; set; } // true while async LLM grading is in progress
     public int TimeLimitMinutes { get; set; }
 
     public Quiz Quiz { get; set; } = null!;

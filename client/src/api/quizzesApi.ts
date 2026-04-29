@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance';
 import type { PaginatedList } from '../types/common';
-import type { QuizListDto, QuizDetailDto, CreateQuizRequest, UpdateQuizRequest } from '../types/quiz';
+import type { QuizListDto, QuizDetailDto, CreateQuizRequest, UpdateQuizRequest, QuizPreviewDto } from '../types/quiz';
 
 export interface GetQuizzesParams {
   pageNumber: number;
@@ -31,5 +31,21 @@ export const quizzesApi = {
 
   archiveQuiz(id: string) {
     return axiosInstance.patch(`/quizzes/${id}/archive`);
+  },
+
+  previewQuiz(id: string) {
+    return axiosInstance.get<QuizPreviewDto>(`/quizzes/${id}/preview`);
+  },
+
+  validateQuiz(id: string) {
+    return axiosInstance.patch(`/quizzes/${id}/validate`);
+  },
+
+  startExam(id: string) {
+    return axiosInstance.patch<{ manualStartedAt: string }>(`/quizzes/${id}/start-exam`);
+  },
+
+  reuseQuiz(id: string) {
+    return axiosInstance.post<{ id: string }>(`/quizzes/${id}/reuse`);
   },
 };

@@ -36,9 +36,10 @@ public class QuestionsController : ControllerBase
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] Guid? categoryId = null,
-        [FromQuery] QuestionType? type = null)
+        [FromQuery] QuestionType? type = null,
+        [FromQuery] DifficultyLevel? difficulty = null)
     {
-        var result = await _mediator.Send(new GetQuestionsQuery(pageNumber, pageSize, categoryId, type));
+        var result = await _mediator.Send(new GetQuestionsQuery(pageNumber, pageSize, categoryId, type, difficulty));
         return Ok(result);
     }
 

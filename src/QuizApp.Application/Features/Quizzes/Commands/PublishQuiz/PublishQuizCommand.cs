@@ -27,6 +27,10 @@ public class PublishQuizCommandHandler : IRequestHandler<PublishQuizCommand>
         if (_currentUserService.Role != UserRole.Admin && quiz.CreatedById != _currentUserService.UserId)
             throw new ForbiddenAccessException();
 
+        // Exam quizzes must be validated (previewed) before publishing
+        if (quiz.Mode == QuizMode.Exam && !quiz.IsValidated)
+            throw new InvalidOperationException("Exam quizzes must be previewed and validated before publishing.");
+
         quiz.Status = QuizStatus.Published;
         await _context.SaveChangesAsync(cancellationToken);
     }

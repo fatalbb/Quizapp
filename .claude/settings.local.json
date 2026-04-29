@@ -60,7 +60,16 @@
       "Bash(cmd.exe /c \"where sqlite3\")",
       "Bash(\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe\" -u root -p12345 QuizAppDb -e \"SELECT COUNT\\(*\\) as users FROM AspNetUsers; SELECT COUNT\\(*\\) as quizzes FROM Quizzes; SELECT COUNT\\(*\\) as questions FROM Questions;\")",
       "Bash(ls \"C:/Users/fadel.boukezane/Documents/Projects/QuizApp/src/QuizApp.API/QuizApp.db\"*)",
-      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysqldump.exe\" -u root -p12345 QuizAppDb)"
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysqldump.exe\" -u root -p12345 QuizAppDb)",
+      "Bash(taskkill //IM QuizApp.API.exe //F)",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe\" -u root -p12345 QuizAppDb -e \"SELECT Id, Title, Mode, StartMode, JoinWindowMinutes, ManualStartedAt FROM Quizzes WHERE Mode = 1;\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe\" -u root -p12345 QuizAppDb -e \"UPDATE QuizAttempts SET Status = 2, CompletedAt = UTC_TIMESTAMP\\(\\), Score = 0 WHERE Status = 0 AND TIMESTAMPDIFF\\(MINUTE, StartedAt, UTC_TIMESTAMP\\(\\)\\) > TimeLimitMinutes; SELECT COUNT\\(*\\) AS cleaned FROM QuizAttempts WHERE Status = 2 AND Score = 0;\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe\" -u root -p12345 QuizAppDb -e \"DELETE aa FROM AttemptAnswers aa INNER JOIN QuizAttempts qa ON aa.QuizAttemptId = qa.Id WHERE qa.Status = 0; DELETE FROM QuizAttempts WHERE Status = 0; SELECT 'Cleaned up' AS done;\")",
+      "Bash(cmd.exe /c \"ipconfig\")",
+      "Bash(powershell.exe -Command \"Get-NetIPAddress -AddressFamily IPv4 | Format-Table IPAddress, InterfaceAlias\")",
+      "Bash(grep -v \"169\\\\.\\\\|127\\\\.\\\\|--\\\\|^$\\\\|InterfaceAlias\\\\|IPAddress\")",
+      "Bash(powershell.exe -Command \"Get-NetFirewallRule -DisplayName '*QuizApp*' | Select-Object DisplayName, Enabled, Direction, Action | Format-Table\")",
+      "Bash('/c/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe' -u root -p12345 QuizAppDb -e ' *)"
     ]
   }
 }

@@ -18,6 +18,20 @@ public class QuizDetailDto
     public string Status { get; set; } = string.Empty;
     public int PassingScorePercentage { get; set; }
     public List<QuizCategoryDetailDto> Categories { get; set; } = [];
+
+    // Exam mode fields
+    public string Mode { get; set; } = "Learning";
+    public bool IsValidated { get; set; }
+    public int MaxAttempts { get; set; }
+    public string? StartMode { get; set; }
+    public DateTime? ScheduledStartAt { get; set; }
+    public DateTime? ScheduledEndAt { get; set; }
+    public DateTime? ManualStartedAt { get; set; }
+    public int JoinWindowMinutes { get; set; }
+    public bool AllowFeedback { get; set; }
+    public bool AllowReevaluation { get; set; }
+    public bool AutoReevaluationQuota { get; set; }
+    public int MaxReevaluationsPerStudent { get; set; }
 }
 
 public class QuizCategoryDetailDto
@@ -28,6 +42,10 @@ public class QuizCategoryDetailDto
     public int EasyPercentage { get; set; }
     public int MediumPercentage { get; set; }
     public int HardPercentage { get; set; }
+    public int MultipleChoicePercentage { get; set; }
+    public int SingleChoicePercentage { get; set; }
+    public int TrueFalsePercentage { get; set; }
+    public int InputPercentage { get; set; }
 }
 
 public class GetQuizByIdQueryHandler : IRequestHandler<GetQuizByIdQuery, QuizDetailDto>
@@ -59,8 +77,24 @@ public class GetQuizByIdQueryHandler : IRequestHandler<GetQuizByIdQuery, QuizDet
                 QuestionCount = qc.QuestionCount,
                 EasyPercentage = qc.EasyPercentage,
                 MediumPercentage = qc.MediumPercentage,
-                HardPercentage = qc.HardPercentage
-            }).ToList()
+                HardPercentage = qc.HardPercentage,
+                MultipleChoicePercentage = qc.MultipleChoicePercentage,
+                SingleChoicePercentage = qc.SingleChoicePercentage,
+                TrueFalsePercentage = qc.TrueFalsePercentage,
+                InputPercentage = qc.InputPercentage
+            }).ToList(),
+            Mode = quiz.Mode.ToString(),
+            IsValidated = quiz.IsValidated,
+            MaxAttempts = quiz.MaxAttempts,
+            StartMode = quiz.StartMode?.ToString(),
+            ScheduledStartAt = quiz.ScheduledStartAt,
+            ScheduledEndAt = quiz.ScheduledEndAt,
+            ManualStartedAt = quiz.ManualStartedAt,
+            JoinWindowMinutes = quiz.JoinWindowMinutes,
+            AllowFeedback = quiz.AllowFeedback,
+            AllowReevaluation = quiz.AllowReevaluation,
+            AutoReevaluationQuota = quiz.AutoReevaluationQuota,
+            MaxReevaluationsPerStudent = quiz.MaxReevaluationsPerStudent
         };
     }
 }

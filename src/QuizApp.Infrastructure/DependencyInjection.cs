@@ -64,6 +64,7 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromMinutes(10);
         });
         services.AddScoped<IExcelParserService, ExcelParserService>();
+        services.AddScoped<ISqlSandboxService, SqlSandboxService>();
 
         return services;
     }

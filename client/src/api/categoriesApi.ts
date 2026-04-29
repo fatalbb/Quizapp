@@ -23,8 +23,18 @@ export const categoriesApi = {
   },
 
   getQuestionCounts(categoryId: string) {
-    return axiosInstance.get<{ total: number; easy: number; medium: number; hard: number }>(
+    return axiosInstance.get<QuestionCountsDto>(
       `/categories/${categoryId}/question-counts`,
     );
   },
 };
+
+export interface QuestionCountsDto {
+  total: number;
+  easy: number;
+  medium: number;
+  hard: number;
+  byType: Record<string, number>;
+  // byDifficultyType[difficulty][type] = count
+  byDifficultyType: Record<string, Record<string, number>>;
+}
